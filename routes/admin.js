@@ -134,7 +134,7 @@ router.post('/create-user', async (req, res) => {
 // Get all users with pagination and search
 router.get('/users', async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = '' } = req.query
+    const { page = 1, limit = 50, search = '' } = req.query
     const offset = (page - 1) * limit
 
     let whereClause = ''
