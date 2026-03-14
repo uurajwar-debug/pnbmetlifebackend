@@ -25,7 +25,12 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/payment', paymentRoutes)
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'PNB MetLife API' })
+  res.json({ status: 'ok', message: 'PNB MetLife API', timestamp: new Date().toISOString() })
+})
+
+// Ping endpoint to keep server awake
+app.get('/api/ping', (req, res) => {
+  res.json({ status: 'ok', message: 'pong', timestamp: new Date().toISOString() })
 })
 
 app.get('/api/dashboard-stats', async (req, res) => {
@@ -51,6 +56,19 @@ const startServer = async () => {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
   })
+  
+  // Auto-ping to keep server awake (every 10 minutes)
+  const RENDER_URL = process.env.RENDER_URL
+  if (RENDER_URL) {
+    setInterval(async () => {
+      try {
+        await fetch(`${RENDER_URL}/api/ping`)
+        console.log('Self-ping successful')
+      } catch (error) {
+        console.log('Self-ping failed:', error.message)
+      }
+    }, 10 * 60 * 1000) // 10 minutes
+  }
 }
 
 startServer()
