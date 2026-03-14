@@ -220,6 +220,16 @@ router.delete('/delete-user/:id', async (req, res) => {
   }
 })
 
+// Delete all users
+router.delete('/delete-all-users', async (req, res) => {
+  try {
+    await query('DELETE FROM users')
+    res.json({ success: true, message: 'All users deleted successfully' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
 // Dashboard stats
 router.get('/dashboard', async (req, res) => {
   try {
