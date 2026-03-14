@@ -16,18 +16,43 @@ export const initializeDatabase = async () => {
     const client = await pool.connect()
     console.log('Connected to PostgreSQL database')
 
-    // Create tables
+    // Create admin_users table
     await client.query(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE IF NOT EXISTS admin_users (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        email VARCHAR(100) UNIQUE NOT NULL,
-        phone VARCHAR(20),
-        status VARCHAR(20) DEFAULT 'Active',
+        username VARCHAR(50) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `)
 
+    // Create users table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        policy_number TEXT,
+        name TEXT NOT NULL,
+        mobile_number TEXT,
+        dob DATE,
+        city TEXT,
+        state TEXT,
+        agent TEXT,
+        email TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Add missing columns if they don't exist
+    const columns = ['policy_number', 'mobile_number', 'dob', 'city', 'state', 'agent', 'email', 'amount']
+    for (const col of columns) {
+      try {
+        await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ${col} TEXT`)
+      } catch (e) {
+        // Ignore errors for column additions
+      }
+    }
+
+    // Create user_info table (for payment data)
     await client.query(`
       CREATE TABLE IF NOT EXISTS user_info (
         id SERIAL PRIMARY KEY,
@@ -50,6 +75,7 @@ export const initializeDatabase = async () => {
       )
     `)
 
+    // Create insurance_applications table
     await client.query(`
       CREATE TABLE IF NOT EXISTS insurance_applications (
         id SERIAL PRIMARY KEY,
@@ -61,6 +87,7 @@ export const initializeDatabase = async () => {
       )
     `)
 
+    // Create contact_messages table
     await client.query(`
       CREATE TABLE IF NOT EXISTS contact_messages (
         id SERIAL PRIMARY KEY,
@@ -73,15 +100,7 @@ export const initializeDatabase = async () => {
       )
     `)
 
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS admin_users (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(50) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `)
-
+    // Create insurance_plans table
     await client.query(`
       CREATE TABLE IF NOT EXISTS insurance_plans (
         id SERIAL PRIMARY KEY,
@@ -94,6 +113,7 @@ export const initializeDatabase = async () => {
       )
     `)
 
+    // Create admin_settings table
     await client.query(`
       CREATE TABLE IF NOT EXISTS admin_settings (
         id SERIAL PRIMARY KEY,
@@ -114,13 +134,13 @@ export const initializeDatabase = async () => {
 
 export const query = async (sql, params = []) => {
   if (!pool) {
-    return { rows: [] }
+    return { rows: [], error: 'Database not connected' }
   }
   try {
     return await pool.query(sql, params)
   } catch (error) {
     console.log('Query error:', error.message)
-    return { rows: [] }
+    return { rows: [], error: error.message }
   }
 }
 
