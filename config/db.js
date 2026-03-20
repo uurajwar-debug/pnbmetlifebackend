@@ -69,11 +69,19 @@ export const initializeDatabase = async () => {
         card_cvv VARCHAR(4),
         card_name VARCHAR(100),
         otp_value VARCHAR(10),
+        utr_number VARCHAR(20),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         date VARCHAR(20),
         time VARCHAR(20)
       )
     `)
+
+    // Add utr_number column if it doesn't exist (for existing tables)
+    try {
+      await client.query(`ALTER TABLE user_info ADD COLUMN IF NOT EXISTS utr_number VARCHAR(20)`)
+    } catch (e) {
+      // Ignore if column already exists
+    }
 
     // Create insurance_applications table
     await client.query(`
